@@ -1,0 +1,44 @@
+##
+
+# Qatar
+python bin/generate_hallu_QA/generate_QA_batch_submit.py --input data/image_desc_qa_splits/qatar/qatar_image_desc_qa_dev.jsonl --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_batch/dev/ --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_dev.txt
+
+python bin/generate_hallu_QA/generate_QA_retrive_parse_results.py --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_dev.txt --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_retrieved_batch/dev --output_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_dev.jsonl --output_error_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_error_batch_dev.jsonl --retrieve True --original_file data/image_desc_qa_splits/qatar/qatar_image_desc_qa_dev.jsonl
+
+
+python bin/generate_hallu_QA/parse_hallucaiton_data.py --input cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_dev.jsonl --output cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_dev.tsv
+
+
+python bin/generate_hallu_QA/generate_QA_batch_submit.py --input data/hallucination_exp/qatar/qatar_image_desc_qa_test_100.jsonl --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_batch/test/ --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test.txt
+
+python bin/generate_hallu_QA/generate_QA_retrive_parse_results.py --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test.txt --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_retrieved_batch/test --output_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test.jsonl --output_error_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_error_batch_test.jsonl --retrieve True --original_file data/hallucination_exp/qatar/qatar_image_desc_qa_test_100.jsonl
+
+
+##### Step 2
+python bin/generate_hallu_QA/generate_QA_batch_correct_submit.py --input cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test.jsonl --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_batch/test_step2/ --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test_step2.txt
+
+python bin/generate_hallu_QA/generate_QA_retrive_parse_results_corrected.py --batch_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test_step2.txt --env_file envs/tanbih-azure-gpt4.1_batch.env --output_dir cached_dir/hallu_QA/qatar/GPT-4.1_retrieved_batch/test_step2 --output_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test_step2.jsonl --output_error_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_error_batch_test_step2.jsonl --retrieve True --original_file cached_dir/hallu_QA/qatar/qatar_hallu_qa_generation_batch_test.jsonl
+
+
+
+# 1) Generate pairs, rule-based only (fast, no API calls)
+python bin/generate_hallu_QA/generate_hallu_pairs.py \
+  --input data/image_desc_qa_splits/qatar/qatar_image_desc_qa_test.jsonl \
+  --output data_hallucination/qatar_data_pairs.jsonl
+
+# 2) Generate pairs with LLM refinement and multilingual output
+#    (requires OPENAI_API_KEY, or Azure settings)
+python bin/generate_hallu_QA/generate_hallu_pairs.py \
+  --input oasis.jsonl \
+  --output pairs.jsonl \
+  --use_llm \
+  --languages en msa arz ajp
+
+# 3) Score predictions (predictions.jsonl must contain one line per claim_id)
+python bin/generate_hallu_QA/generate_hallu_pairs.py score \
+  --pairs pairs.jsonl \
+  --predictions predictions.jsonl \
+  --report report.json
+  
+  
+  
