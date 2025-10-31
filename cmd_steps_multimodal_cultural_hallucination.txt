@@ -40,5 +40,104 @@ python bin/generate_hallu_QA/generate_hallu_pairs.py score \
   --predictions predictions.jsonl \
   --report report.json
   
+########## results/inference files
+
+
+cached_dir/Qwen2.5-Omni-3B-LoRA-results_merged/
+Qwen2.5-Omni-3B-LoRA-results_merged/text/en/qatar/merged_results.jsonl
+
+/alt/llm-benchmarking/exp_multimodal_cultural_alignment/cached_dir/GPT-4.1-zero-shot/text/en/qatar/batch_retrieved.jsonl
+
+/alt/llm-benchmarking/exp_multimodal_cultural_alignment/cached_dir/Gemini-2.5-pro-zero-shot/text/msa/qatar/merged.jsonl
+
+/alt/llm-benchmarking/exp_multimodal_cultural_alignment/cached_dir/GPT-4o-zero-shot/audio/en/qatar/merged_file.jsonl
+
+
+/alt/llm-benchmarking/exp_multimodal_cultural_alignment/GPT5-chat-zero-shot/text/en/algeria/algeria_image_desc_qa_en_text_response_test.jsonl  
   
+  
+bash ./scripts/copy_recursive.sh /alt/llm-benchmarking/exp_multimodal_cultural_alignment/cached_dir/GPT5-chat-zero-shot/ results/GPT5-chat-zero-shot/
+
+bash ./scripts/copy_recursive.sh /alt/llm-benchmarking/exp_multimodal_cultural_alignment/cached_dir/Gemini-2.5-pro-zero-shot/ results/Gemini-2.5-pro-zero-shot/   
+
+
+
+########
+
+# Submit
+python bin/batch_submit.py \
+  --input tmp/algeria/algeria_image_desc_qa_test_10.jsonl \
+  --env_file envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir cached_dir/tmp/GPT-4.1/text_image/english/algeria/ \
+  --batch_file cached_dir/tmp/GPT-4.1/text_image/english/algeria/batch_tracking.json \
+  --prompt qaimage \
+  --lang_prefix en \
+  --max_tokens 2000 \
+  --modality "text_image"
+  
+python bin/fetch_and_merge_results.py \
+  --batch_file  cached_dir/tmp/GPT-4.1/text_image/english/algeria/batch_tracking.json \
+  --env_file    envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir  cached_dir/tmp/GPT-4.1/text_image/english/algeria/ \
+  --output_file cached_dir/tmp/GPT-4.1/text_image/english/algeria/retrieved/batch_retrieved.jsonl \
+  --output_error_file cached_dir/tmp/GPT-4.1/text_image/english/algeria/retrieved/batch_error_retrieved.jsonl \
+  --retrieve True \
+  --original_file tmp/algeria/algeria_image_desc_qa_test_10.jsonl \
+  --lang_prefix en \
+  --custom_id_sep "::q"
+  
+
+
+python bin/batch_submit.py \
+  --input data/image_desc_qa_en_msa_egy_lev_splits_4/qatar/test/batch_translated.jsonl \
+  --env_file envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/ \
+  --batch_file cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/batch_tracking.json \
+  --prompt qaimage \
+  --lang_prefix en \
+  --max_tokens 2000 \
+  --modality "text_image"
+  
+    
+python bin/fetch_and_merge_results.py \
+  --batch_file  cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/batch_tracking.json \
+  --env_file    envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir  cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/ \
+  --output_file cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/retrieved/batch_retrieved.jsonl \
+  --output_error_file cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/batch_error_retrieved.jsonl \
+  --retrieve True \
+  --original_file data/image_desc_qa_en_msa_egy_lev_splits_4/qatar/test/batch_translated.jsonl \
+  --lang_prefix en \
+  --custom_id_sep "::q"
+  
+
+python bin/extract_true_false.py --input cached_dir/TF_checking/GPT-4.1/text_image/english/qatar/retrieved/batch_retrieved.jsonl --output data/qatar_test_true_false.jsonl --stats
+
+  
+######## Extend and create new hallucination dataset.
+python bin/extend_hallucination/batch_submit.py \
+  --input tmp/algeria/algeria_image_desc_qa_test_10.jsonl \
+  --env_file envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/ \
+  --batch_file cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/batch_tracking.json \
+  --prompt qaimage \
+  --lang_prefix en \
+  --max_tokens 2000 \
+  --modality "text_image"  
+
+python bin/extend_hallucination/fetch_and_merge_results.py \
+  --batch_file  cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/batch_tracking.json \
+  --env_file    envs/tanbih-azure-gpt4.1_batch.env \
+  --output_dir  cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/ \
+  --output_file cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/retrieved/batch_retrieved.jsonl \
+  --output_error_file cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/retrieved/batch_error_retrieved.jsonl \
+  --retrieve True \
+  --original_file tmp/algeria/algeria_image_desc_qa_test_10.jsonl \
+  --lang_prefix en \
+  --custom_id_sep "::q"  
+  
+  
+python bin/extract_true_false.py --input cached_dir/tmp/extend_hallu_qa/GPT-4.1/text_image/english/algeria/retrieved/batch_retrieved.jsonl --output data/qatar_test_true_false_10.jsonl --stats
+
+
   
